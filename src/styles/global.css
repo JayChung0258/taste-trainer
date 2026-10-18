@@ -149,6 +149,13 @@
   }
 }
 
+@keyframes pixel-leave {
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 @keyframes pixel-blink {
   50% {
     opacity: 0.25;
@@ -183,6 +190,16 @@
 @utility animate-wipe {
   animation: pixel-wipe 360ms steps(6, end) both;
   animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/*
+ * Exit: add "is-leaving" to a container and its children sink out in a quick stagger
+ * (overrides their entrance animation). Keep EXIT_MS in QuestionPlayer.tsx in sync.
+ */
+.is-leaving > * {
+  animation: pixel-leave 200ms steps(3, end) both !important;
+  animation-delay: calc(min(var(--i, 0), 3) * 40ms) !important;
+  pointer-events: none;
 }
 
 @utility animate-blink {

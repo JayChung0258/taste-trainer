@@ -4,9 +4,12 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
+  // Wider main column, for pages with a side-by-side layout.
+  wide?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, wide = false } = Astro.props;
+const width = wide ? 'max-w-5xl' : 'max-w-3xl';
 ---
 
 <!-- Root stays still on navigation; only <main> animates (see "Page-to-page transition" in global.css). -->
@@ -29,14 +32,14 @@ const { title } = Astro.props;
   </head>
   <body class="min-h-screen bg-night font-sans text-cream antialiased">
     <header class="border-b-4 border-twilight">
-      <nav class="mx-auto max-w-3xl px-4 py-4">
+      <nav class:list={['mx-auto px-4 py-4', width]}>
         <a href="/" class="inline-flex items-center gap-2 font-pixel text-lg hover:text-sun">
           <span class="inline-block size-3 bg-sun shadow-[0_3px_0_0_var(--color-ember)]" aria-hidden="true"></span>
           Design Taste Trainer
         </a>
       </nav>
     </header>
-    <main class="mx-auto max-w-3xl px-4 py-10 [view-transition-name:main]">
+    <main class:list={['mx-auto px-4 py-10 [view-transition-name:main]', width]}>
       <slot />
     </main>
   </body>
