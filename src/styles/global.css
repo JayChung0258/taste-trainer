@@ -1,2 +1,134 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/*
+ * Sunset Pixel Art theme. Decisions and contrast notes live in the Notion page "Visual Design".
+ * Dark-only for now: the sunset is the look. A light mode would need darker accents
+ * (ember, sun and haze fail AA on cream), so it is left for later.
+ */
+@theme {
+  /* Sky, from top (darkest) to the horizon */
+  --color-abyss: #0e0a24; /* hard shadows, code blocks */
+  --color-night: #1b1340; /* page background */
+  --color-twilight: #2b1a52; /* raised quiet surfaces */
+  --color-dusk: #3d2163; /* cards, panels */
+  --color-plum: #7a2a68; /* scenery only */
+  --color-magenta: #b8336a; /* borders and scenery only: 3.06:1 on night, too low for text */
+
+  /* Accents */
+  --color-rose: #f07ca8; /* magenta's readable twin for text (chapter labels) */
+  --color-ember: #f28c38; /* primary accent: buttons, "your pick", links */
+  --color-ember-deep: #9a4f12; /* button edge */
+  --color-sun: #ffc857; /* highlights, flip the context, visited stops */
+
+  /* Text */
+  --color-cream: #fff1de; /* main text */
+  --color-haze: #a89bc2; /* muted text */
+
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-pixel);
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-sun);
+    outline-offset: 3px;
+  }
+}
+
+/*
+ * Stepped (notched) border plus a hard drop shadow, drawn with box-shadow layers so no images
+ * are needed. Set --pixel-border to recolor the edge, e.g. [--pixel-border:var(--color-ember)].
+ */
+@utility pixel-box {
+  --px: 3px;
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--pixel-border, var(--color-magenta)),
+    0 var(--px) 0 0 var(--pixel-border, var(--color-magenta)),
+    calc(-1 * var(--px)) 0 0 0 var(--pixel-border, var(--color-magenta)),
+    var(--px) 0 0 0 var(--pixel-border, var(--color-magenta)),
+    var(--px) calc(3 * var(--px)) 0 0 var(--color-abyss);
+}
+
+/* Chunky button that sinks 2px when pressed. */
+@utility pixel-button {
+  display: inline-block;
+  background-color: var(--color-ember);
+  color: var(--color-night);
+  font-family: var(--font-pixel);
+  font-weight: 500;
+  box-shadow:
+    0 -3px 0 0 var(--color-ember),
+    0 4px 0 0 var(--color-ember-deep);
+  transition:
+    transform 80ms ease-out,
+    box-shadow 80ms ease-out,
+    background-color 80ms ease-out;
+
+  &:hover {
+    background-color: var(--color-sun);
+    box-shadow:
+      0 -3px 0 0 var(--color-sun),
+      0 4px 0 0 var(--color-ember-deep);
+  }
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 -3px 0 0 var(--color-sun),
+      0 2px 0 0 var(--color-ember-deep);
+  }
+}
+
+/* Prose for the MDX scenario text, mapped onto the palette. */
+@utility prose-sunset {
+  --tw-prose-body: var(--color-cream);
+  --tw-prose-headings: var(--color-cream);
+  --tw-prose-lead: var(--color-haze);
+  --tw-prose-links: var(--color-ember);
+  --tw-prose-bold: var(--color-cream);
+  --tw-prose-counters: var(--color-haze);
+  --tw-prose-bullets: var(--color-haze);
+  --tw-prose-hr: var(--color-dusk);
+  --tw-prose-quotes: var(--color-cream);
+  --tw-prose-quote-borders: var(--color-magenta);
+  --tw-prose-captions: var(--color-haze);
+  --tw-prose-code: var(--color-sun);
+  --tw-prose-pre-code: var(--color-cream);
+  --tw-prose-pre-bg: var(--color-abyss);
+  --tw-prose-th-borders: var(--color-dusk);
+  --tw-prose-td-borders: var(--color-dusk);
+
+  /* Shiki sets an inline background; keep code blocks on the theme's darkest surface. */
+  & pre {
+    background-color: var(--color-abyss) !important;
+    border-radius: 0;
+  }
+}
+
+/* Calm, not arcade: no movement for people who ask for less. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pixel-button:active {
+    transform: none;
+  }
+}

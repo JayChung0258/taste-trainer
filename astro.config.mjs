@@ -9,6 +9,11 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   integrations: [react(), mdx()],
 
+  // Code theme picked for the Sunset Pixel palette; its comments stay readable (AA) on the dark code background.
+  markdown: {
+    shikiConfig: { theme: 'catppuccin-mocha' },
+  },
+
   vite: {
     plugins: [tailwindcss()]
   }
