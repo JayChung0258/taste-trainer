@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { loadProgress, type Progress } from '../lib/progress';
 
 type Stop = { id: string; title: string; href: string };
@@ -62,7 +62,8 @@ function Marker({ state }: { state: StopState }) {
     next: 'bg-night ring-ember',
     ahead: 'bg-night ring-haze',
   }[state];
-  return <span className={`absolute top-1 -left-[35px] size-4 ring-4 ${fill}`} aria-hidden />;
+  const blink = state === 'next' ? 'animate-blink' : '';
+  return <span className={`absolute top-1 -left-[35px] size-4 ring-4 ${fill} ${blink}`} aria-hidden />;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,8 +145,17 @@ function Landscape({ stops }: { stops: StopState[] }) {
       {SKY.map((band) => (
         <rect key={band.y} x={0} y={band.y} width={W} height={band.h} fill={band.fill} />
       ))}
-      {STARS.map(([x, y]) => (
-        <rect key={`${x},${y}`} x={x} y={y} width={1} height={1} fill="var(--color-cream)" />
+      {STARS.map(([x, y], i) => (
+        <rect
+          key={`${x},${y}`}
+          x={x}
+          y={y}
+          width={1}
+          height={1}
+          fill="var(--color-cream)"
+          className={i % 2 ? 'animate-twinkle' : undefined}
+          style={{ '--d': `${(i * 0.7) % 3}s` } as CSSProperties}
+        />
       ))}
 
       {/* Setting sun, banded like a pixel-art sunset */}
@@ -171,7 +181,7 @@ function Landscape({ stops }: { stops: StopState[] }) {
         const edge = state === 'visited' ? 'var(--color-night)' : state === 'next' ? 'var(--color-ember)' : 'var(--color-cream)';
         const fill = state === 'visited' ? 'var(--color-sun)' : 'var(--color-night)';
         return (
-          <g key={i}>
+          <g key={i} className={state === 'next' ? 'animate-blink' : undefined}>
             <rect x={x - Math.floor(s / 2) - 1} y={y - s} width={s + 2} height={s + 2} fill={edge} />
             <rect x={x - Math.floor(s / 2)} y={y - s + 1} width={s} height={s} fill={fill} />
           </g>

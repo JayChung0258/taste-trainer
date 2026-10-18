@@ -26,7 +26,9 @@ const { Content } = await render(question);
 const q = question.data;
 ---
 
-<Layout title={q.title}>
+<Layout title={q.title} wide>
+  <!-- Reading text stays at a comfortable line length; only the options/trade-offs use the full width. -->
+  <div class="max-w-3xl">
   <p class="font-pixel text-sm text-rose">
     {chapter.data.title} · Stop {step} of {chapter.questions.length}
   </p>
@@ -47,6 +49,7 @@ const q = question.data;
 
   <div class="prose prose-sunset mb-8 max-w-none">
     <Content components={{ Aside }} />
+  </div>
   </div>
 
   <QuestionPlayer
