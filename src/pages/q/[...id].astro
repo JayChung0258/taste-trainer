@@ -1,0 +1,79 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import QuestionPlayer from '../../components/QuestionPlayer.tsx';
+import Aside from '../../components/Aside.astro';
+import { getJourney, questionHref } from '../../lib/journey';
+
+export async function getStaticPaths() {
+  const chapters = await getJourney();
+  return chapters.flatMap((chapter) =>
+    chapter.questions.map((question, i) => ({
+      params: { id: question.id },
+      props: {
+        question,
+        chapter,
+        step: i + 1,
+        prev: chapter.questions[i - 1],
+        next: chapter.questions[i + 1],
+      },
+    })),
+  );
+}
+
+const { question, chapter, step, prev, next } = Astro.props;
+const { Content } = await render(question);
+const q = question.data;
+---
+
+<Layout title={q.title}>
+  <p class="text-sm text-stone-500 dark:text-stone-400">
+    {chapter.data.title} · Stop {step} of {chapter.questions.length}
+  </p>
+  <h1 class="mb-6 text-3xl font-bold tracking-tight">{q.title}</h1>
+
+  {q.mock && (
+    <p class="mb-6 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+      Mock question
+    </p>
+  )}
+
+  <div class="mb-6 rounded-xl border border-stone-200 p-4 dark:border-stone-800">
+    <p class="mb-1 text-sm font-medium">Context</p>
+    <ul class="list-disc pl-5 text-sm text-stone-600 dark:text-stone-300">
+      {q.constraints.map((c) => <li>{c}</li>)}
+    </ul>
+  </div>
+
+  <div class="prose prose-stone mb-8 max-w-none dark:prose-invert">
+    <Content components={{ Aside }} />
+  </div>
+
+  <QuestionPlayer
+    client:load
+    questionId={question.id}
+    options={q.options}
+    itDependsOn={q.itDependsOn}
+    flip={q.flip}
+    reflection={q.reflection}
+  />
+
+  <section class="mt-10 border-t border-stone-200 pt-6 dark:border-stone-800">
+    <h2 class="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">Read further</h2>
+    <ul class="space-y-1 text-sm">
+      {
+        q.sources.map((s) => (
+          <li>
+            {s.url ? <a href={s.url} class="underline">{s.title}</a> : <em>{s.title}</em>}, {s.author}
+            {s.location && <span class="text-stone-500"> ({s.location})</span>}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <nav class="mt-10 flex justify-between text-sm">
+    {prev ? <a href={questionHref(prev.id)} class="hover:underline">← {prev.data.title}</a> : <a href="/" class="hover:underline">← Journey map</a>}
+    {next ? <a href={questionHref(next.id)} class="hover:underline">{next.data.title} →</a> : <a href="/" class="hover:underline">Back to the map →</a>}
+  </nav>
+</Layout>

@@ -1,0 +1,70 @@
+---
+title: Where does the email code go?
+chapter: welcome-email
+order: 1
+mock: true
+constraints:
+  - Team of 3 engineers
+  - About 500 signups a day
+  - A missed welcome email is annoying, not critical
+options:
+  - id: A
+    label: Call the email service inline in the signup handler
+    gains:
+      - Simplest possible code, easy to read and debug
+      - No new infrastructure
+    costs:
+      - Signup gets slower when the email service is slow
+      - Signup can fail when the email service is down
+    fitsWhen: Low volume, small team, and an occasional lost email is acceptable
+    breaksWhen: The email provider has an outage during a traffic spike
+  - id: B
+    label: Publish an event; a background worker sends the email
+    gains:
+      - Signup stays fast no matter how the email service behaves
+      - Failed sends can be retried
+    costs:
+      - A queue and a worker to run and monitor
+      - Harder to trace a single signup end to end
+    fitsWhen: Traffic is growing or email reliability matters
+    breaksWhen: Nobody watches the queue, so failures pile up silently
+  - id: C
+    label: Hand it to a third-party workflow tool
+    gains:
+      - Very little code to write
+      - Non-engineers can edit the email flow
+    costs:
+      - Vendor lock-in and a monthly bill
+      - Logic lives outside the repo, so it is not reviewed or versioned with the code
+    fitsWhen: Marketing owns the email content and wants to change it often
+    breaksWhen: The flow grows complex and needs real testing
+itDependsOn: How much a slow or failed email hurts compared with the cost of running more moving parts.
+flip:
+  context: 500,000 signups a day
+  notes:
+    A: Now an email outage blocks thousands of signups. Inline is hard to defend.
+    B: The extra moving parts are now clearly worth it. This is the common choice at this scale.
+    C: Can work, but cost grows with volume and the vendor becomes critical infrastructure.
+sources:
+  - title: A Philosophy of Software Design
+    author: John Ousterhout
+  - title: Designing Data-Intensive Applications
+    author: Martin Kleppmann
+---
+
+Your app lets people sign up with an email and password. Product wants every new user to get a welcome email.
+
+Right now the signup handler looks like this:
+
+```ts
+export async function signup(req: Request) {
+  const { email, password } = await req.json();
+  const user = await db.users.create({ email, passwordHash: await hash(password) });
+  // TODO: send the welcome email
+  return Response.json({ id: user.id }, { status: 201 });
+}
+```
+
+<Aside>This is mock content to test the page layout. Real questions come later.</Aside>
+
+Where should the email sending live?

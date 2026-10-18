@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JourneyMap from '../components/JourneyMap.tsx';
+import { getJourney, questionHref } from '../lib/journey';
+
+const chapters = (await getJourney()).map((c) => ({
+  id: c.id,
+  title: c.data.title,
+  summary: c.data.summary,
+  questions: c.questions.map((q) => ({ id: q.id, title: q.data.title, href: questionHref(q.id) })),
+}));
+---
+
+<Layout title="Design Taste Trainer">
+  <h1 class="mb-3 text-3xl font-bold tracking-tight">Practice design decisions</h1>
+  <p class="mb-8 text-lg text-stone-600 dark:text-stone-300">
+    Real design choices are trade-offs. Pick an option, then see what every option gains, costs, and when it fits.
+    There is no single right answer.
+  </p>
+  <JourneyMap client:load chapters={chapters} />
+</Layout>

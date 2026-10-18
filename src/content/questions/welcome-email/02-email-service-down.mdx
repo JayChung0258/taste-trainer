@@ -1,0 +1,58 @@
+---
+title: The email service is down
+chapter: welcome-email
+order: 2
+mock: true
+constraints:
+  - Emails are sent inline in the signup handler
+  - The email provider has been returning errors for 20 minutes
+  - Signups are failing with a 500 error
+options:
+  - id: A
+    label: Catch the error, log it, and let the signup succeed
+    gains:
+      - Signups work again immediately
+      - A one-line change
+    costs:
+      - Those users never get a welcome email
+      - Easy to forget the logs, so the failure becomes invisible
+    fitsWhen: The email is nice to have and you watch your logs or alerts
+    breaksWhen: The email carries something users need, like a verification link
+  - id: B
+    label: Retry a few times inside the request, then give up
+    gains:
+      - Recovers from short blips without new infrastructure
+    costs:
+      - Signup gets slower while retrying
+      - Does not help during a long outage
+    fitsWhen: The provider has occasional short hiccups
+    breaksWhen: Outages last minutes, and retries pile up open requests
+  - id: C
+    label: Save the email to an outbox table and send it later
+    gains:
+      - Signup succeeds and the email is not lost
+      - Sets you up for a background worker later
+    costs:
+      - A new table and a job that reads it
+      - Users get the email late during an outage
+    fitsWhen: Every email must eventually arrive
+    breaksWhen: The sending job itself stops and nobody notices
+itDependsOn: Whether losing an email is acceptable, and how long outages tend to last.
+sources:
+  - title: Designing Data-Intensive Applications
+    author: Martin Kleppmann
+  - title: The Pragmatic Programmer
+    author: Andrew Hunt and David Thomas
+---
+
+You went with the simple inline call. It worked for months. Today the email provider is having an outage:
+
+```ts
+const user = await db.users.create({ email, passwordHash });
+await emailService.send(welcomeEmail(user)); // throws: 503 Service Unavailable
+return Response.json({ id: user.id }, { status: 201 });
+```
+
+The user row is created, but the request still fails, so the user sees an error and tries again.
+
+What do you change?

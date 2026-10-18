@@ -1,0 +1,8 @@
+[
+  {
+    "id": "welcome-email",
+    "title": "The welcome email",
+    "summary": "One small feature, many decisions: where code lives, what happens when things fail, and what changes as you grow.",
+    "order": 1
+  }
+]

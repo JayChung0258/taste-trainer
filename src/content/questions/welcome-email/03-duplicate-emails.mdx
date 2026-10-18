@@ -1,0 +1,58 @@
+---
+title: Some users got the email twice
+chapter: welcome-email
+order: 3
+mock: true
+constraints:
+  - Emails now go through an outbox table and a background job
+  - The job retries when the provider times out
+  - A few users report two identical welcome emails
+options:
+  - id: A
+    label: Accept it; duplicates are rare and harmless
+    gains:
+      - No work at all
+    costs:
+      - Looks sloppy to users
+      - The same bug will hurt later with emails that matter, like receipts
+    fitsWhen: The email is purely friendly and duplicates are truly rare
+    breaksWhen: You reuse the job for password resets or payment receipts
+  - id: B
+    label: Mark each outbox row as sent and check before sending
+    gains:
+      - Simple and easy to understand
+    costs:
+      - Still sends twice if the job crashes after sending but before marking
+    fitsWhen: Rare duplicates are fine but common ones are not
+    breaksWhen: Timeouts are frequent, so the crash window is hit often
+  - id: C
+    label: Send an idempotency key so the provider drops duplicates
+    gains:
+      - Duplicates are stopped at the source, even after crashes
+    costs:
+      - Depends on the provider supporting it
+      - One more concept the team must understand
+    fitsWhen: The provider supports idempotency keys and duplicates must not happen
+    breaksWhen: You switch to a provider without that feature
+itDependsOn: How bad a duplicate is, and how often the job fails halfway through.
+flip:
+  context: The email is a payment receipt
+  notes:
+    A: Not acceptable. Duplicate receipts confuse users and create support tickets.
+    B: A reasonable first step, but the crash window now matters.
+    C: Worth the extra concept. This is what idempotency keys are for.
+sources:
+  - title: Designing Data-Intensive Applications
+    author: Martin Kleppmann
+---
+
+The outbox fixed lost emails. Now a different problem shows up. The job sends an email, the provider takes too long to answer, the job times out and retries, and the email goes out again.
+
+```ts
+for (const row of await outbox.pending()) {
+  await emailService.send(row.email); // succeeded, but the response timed out
+  await outbox.markSent(row.id);      // never reached
+}
+```
+
+How do you deal with duplicates?
